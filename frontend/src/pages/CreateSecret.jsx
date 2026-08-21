@@ -556,7 +556,7 @@ export default function CreateSecret() {
                 <div className="section">
 
                     <button
-                        className="link-button small-text"
+                        className="link-button"
                         onClick={() =>
                             setShowRedeem(v => !v)
                         }
