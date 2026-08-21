@@ -2,9 +2,12 @@ from pydantic import BaseModel
 from pydantic import Field
 
 class CreateSecretRequest(BaseModel):
-    ciphertext: str
-    nonce: str
-    ttl: int
+    ciphertext: str = Field(max_length=140000)
+    nonce: str = Field(max_length=32)
+    ttl: int = Field(
+        ge=60,
+        le=604800
+    )
     views: int = Field(
         default=1,
         ge=1,

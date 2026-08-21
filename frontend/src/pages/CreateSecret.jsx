@@ -17,6 +17,7 @@ import {
 } from "../crypto/crypto";
 
 const CODE_RESERVE_ATTEMPTS = 5;
+const MAX_SECRET_LENGTH = 100000;
 
 const TTL_OPTIONS = [
     {
@@ -93,6 +94,13 @@ export default function CreateSecret() {
     async function handleCreate() {
 
         if (!secret.trim()) {
+            return;
+        }
+
+        if (secret.length > MAX_SECRET_LENGTH) {
+            alert(
+                `Secret is too long (max ${MAX_SECRET_LENGTH.toLocaleString()} characters)`
+            );
             return;
         }
 
@@ -393,6 +401,10 @@ export default function CreateSecret() {
                         setSecret(e.target.value)
                     }
                 />
+
+                <p className="small-text">
+                    {secret.length.toLocaleString()} / {MAX_SECRET_LENGTH.toLocaleString()} characters
+                </p>
 
                 <div className="form-row">
 
