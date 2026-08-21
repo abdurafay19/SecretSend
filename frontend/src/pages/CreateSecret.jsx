@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
-import { createSecret, createCode } from "../api/secretApi";
+import {
+    createSecret,
+    createCode,
+    getByCode
+} from "../api/secretApi";
 
 import {
     generateKey,
     exportKey,
     encryptSecret,
     generateCode,
-    wrapKeyWithCode
+    wrapKeyWithCode,
+    unwrapKeyWithCode,
+    decryptSecret
 } from "../crypto/crypto";
 
 const CODE_RESERVE_ATTEMPTS = 5;
@@ -58,6 +63,13 @@ export default function CreateSecret() {
     const [code, setCode] = useState("");
     const [codeLoading, setCodeLoading] = useState(false);
     const [codeCopied, setCodeCopied] = useState(false);
+
+    const [showRedeem, setShowRedeem] = useState(false);
+    const [redeemCode, setRedeemCode] = useState("");
+    const [redeemLoading, setRedeemLoading] = useState(false);
+    const [redeemError, setRedeemError] = useState("");
+    const [redeemedSecret, setRedeemedSecret] = useState("");
+    const [redeemedCopied, setRedeemedCopied] = useState(false);
 
     function handleViewsChange(e) {
 
@@ -228,6 +240,82 @@ export default function CreateSecret() {
 
             alert(
                 "Failed to copy code"
+            );
+        }
+    }
+
+    function handleRedeemCodeChange(e) {
+
+        const digitsOnly =
+            e.target.value.replace(/\D/g, "");
+
+        setRedeemCode(digitsOnly.slice(0, 6));
+    }
+
+    async function handleRedeem() {
+
+        if (redeemCode.length !== 6) {
+            setRedeemError("Enter the full 6-digit code");
+            return;
+        }
+
+        try {
+
+            setRedeemLoading(true);
+            setRedeemError("");
+
+            const data = await getByCode(redeemCode);
+
+            const key =
+                await unwrapKeyWithCode(
+                    data.wrapped_key,
+                    data.salt,
+                    data.iv,
+                    redeemCode
+                );
+
+            const plaintext =
+                await decryptSecret(
+                    data.ciphertext,
+                    data.nonce,
+                    key
+                );
+
+            setRedeemedSecret(plaintext);
+
+        } catch (err) {
+
+            console.error(err);
+
+            setRedeemError(err.message);
+
+        } finally {
+
+            setRedeemLoading(false);
+
+        }
+    }
+
+    async function handleCopyRedeemed() {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                redeemedSecret
+            );
+
+            setRedeemedCopied(true);
+
+            setTimeout(() => {
+                setRedeemedCopied(false);
+            }, 2000);
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(
+                "Failed to copy secret"
             );
         }
     }
@@ -465,12 +553,98 @@ export default function CreateSecret() {
 
                 )}
 
-                <p className="small-text">
-                    Have a code instead of a link?{" "}
-                    <Link to="/code">
-                        Redeem it here
-                    </Link>
-                </p>
+                <div className="section">
+
+                    <button
+                        className="link-button small-text"
+                        onClick={() =>
+                            setShowRedeem(v => !v)
+                        }
+                    >
+                        {
+                            showRedeem
+                                ? "Hide code redemption"
+                                : "Have a code instead of a link? Redeem it here"
+                        }
+                    </button>
+
+                    {showRedeem && (
+
+                        <div className="info-box">
+
+                            {!redeemedSecret ? (
+
+                                <>
+
+                                    <label className="label">
+                                        Enter Code
+                                    </label>
+
+                                    <input
+                                        className="input"
+                                        value={redeemCode}
+                                        onChange={handleRedeemCodeChange}
+                                        inputMode="numeric"
+                                        placeholder="000000"
+                                        maxLength={6}
+                                    />
+
+                                    {redeemError && (
+
+                                        <div className="warning-box">
+                                            {redeemError}
+                                        </div>
+
+                                    )}
+
+                                    <button
+                                        className="button"
+                                        onClick={handleRedeem}
+                                        disabled={redeemLoading}
+                                    >
+                                        {
+                                            redeemLoading
+                                                ? "Retrieving..."
+                                                : "Redeem Code"
+                                        }
+                                    </button>
+
+                                </>
+
+                            ) : (
+
+                                <>
+
+                                    <label className="label">
+                                        Secret Content
+                                    </label>
+
+                                    <textarea
+                                        className="textarea"
+                                        readOnly
+                                        value={redeemedSecret}
+                                    />
+
+                                    <button
+                                        className="button"
+                                        onClick={handleCopyRedeemed}
+                                    >
+                                        {
+                                            redeemedCopied
+                                                ? "Copied!"
+                                                : "Copy Secret"
+                                        }
+                                    </button>
+
+                                </>
+
+                            )}
+
+                        </div>
+
+                    )}
+
+                </div>
 
                 <div className="footer">
 
