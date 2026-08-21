@@ -16,9 +16,9 @@ class SecretResponse(BaseModel):
 
 class CreateCodeRequest(BaseModel):
     code: str = Field(pattern=r"^\d{6}$")
-    wrapped_key: str
-    salt: str
-    iv: str
+    wrapped_key: str = Field(max_length=200)
+    salt: str = Field(max_length=64)
+    iv: str = Field(max_length=64)
 
 class CodeResponse(BaseModel):
     code: str

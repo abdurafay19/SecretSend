@@ -16,7 +16,13 @@ router = APIRouter()
 @router.post(
     "/secrets/{secret_id}/code",
     response_model=CodeResponse,
-    dependencies=[Depends(rate_limiter(limit=30, window=60))]
+    dependencies=[
+        Depends(rate_limiter(
+            name="create_code",
+            limit=30,
+            window=60
+        ))
+    ]
 )
 def create_code(secret_id: str, request: CreateCodeRequest):
 
@@ -53,7 +59,13 @@ def create_code(secret_id: str, request: CreateCodeRequest):
 @router.get(
     "/codes/{code}",
     response_model=SecretByCodeResponse,
-    dependencies=[Depends(rate_limiter(limit=20, window=60))]
+    dependencies=[
+        Depends(rate_limiter(
+            name="get_by_code",
+            limit=20,
+            window=60
+        ))
+    ]
 )
 def get_by_code(
     code: str = Path(pattern=r"^\d{6}$")
