@@ -6,6 +6,7 @@ import {
 
 import CreateSecret from "./pages/CreateSecret";
 import ViewSecret from "./pages/ViewSecret";
+import RedeemCode from "./pages/RedeemCode";
 import "./App.css";
 
 function App() {
@@ -21,6 +22,11 @@ function App() {
                 <Route
                     path="/s/:id"
                     element={<ViewSecret />}
+                />
+
+                <Route
+                    path="/code"
+                    element={<RedeemCode />}
                 />
 
             </Routes>

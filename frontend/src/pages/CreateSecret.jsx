@@ -1,12 +1,17 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { createSecret } from "../api/secretApi";
+import { createSecret, createCode } from "../api/secretApi";
 
 import {
     generateKey,
     exportKey,
-    encryptSecret
+    encryptSecret,
+    generateCode,
+    wrapKeyWithCode
 } from "../crypto/crypto";
+
+const CODE_RESERVE_ATTEMPTS = 5;
 
 const TTL_OPTIONS = [
     {
@@ -48,6 +53,12 @@ export default function CreateSecret() {
     const [copied, setCopied] = useState(false);
     const [views, setViews] = useState(1);
 
+    const [secretId, setSecretId] = useState("");
+    const [secretKey, setSecretKey] = useState(null);
+    const [code, setCode] = useState("");
+    const [codeLoading, setCodeLoading] = useState(false);
+    const [codeCopied, setCodeCopied] = useState(false);
+
     function handleViewsChange(e) {
 
         const value = e.target.value;
@@ -88,6 +99,8 @@ export default function CreateSecret() {
 
             setLoading(true);
 
+            setCode("");
+
             // Generate AES key
             const key =
                 await generateKey();
@@ -121,6 +134,8 @@ export default function CreateSecret() {
                 `#${exportedKey}`;
 
             setShareUrl(url);
+            setSecretId(response.id);
+            setSecretKey(key);
 
         } catch (err) {
 
@@ -132,6 +147,88 @@ export default function CreateSecret() {
 
             setLoading(false);
 
+        }
+    }
+
+    async function handleGetCode() {
+
+        try {
+
+            setCodeLoading(true);
+
+            for (
+                let attempt = 0;
+                attempt < CODE_RESERVE_ATTEMPTS;
+                attempt++
+            ) {
+
+                const candidate = generateCode();
+
+                const wrapped =
+                    await wrapKeyWithCode(
+                        secretKey,
+                        candidate
+                    );
+
+                try {
+
+                    await createCode(secretId, {
+                        code: candidate,
+                        wrapped_key: wrapped.wrappedKey,
+                        salt: wrapped.salt,
+                        iv: wrapped.iv
+                    });
+
+                    setCode(candidate);
+
+                    return;
+
+                } catch (err) {
+
+                    if (err.code !== "CODE_CONFLICT") {
+                        throw err;
+                    }
+
+                    // Code already taken, try another one
+                }
+            }
+
+            throw new Error(
+                "Could not generate a unique code, please try again"
+            );
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(err.message);
+
+        } finally {
+
+            setCodeLoading(false);
+
+        }
+    }
+
+    async function handleCopyCode() {
+
+        try {
+
+            await navigator.clipboard.writeText(code);
+
+            setCodeCopied(true);
+
+            setTimeout(() => {
+                setCodeCopied(false);
+            }, 2000);
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(
+                "Failed to copy code"
+            );
         }
     }
 
@@ -304,9 +401,76 @@ export default function CreateSecret() {
 
                         </div>
 
+                        <hr />
+
+                        <strong>
+                            Can't share the link?
+                        </strong>
+
+                        <p>
+                            Generate a 6-digit code instead.
+                            It shares the same expiration and
+                            view limit as the link above.
+                        </p>
+
+                        {code ? (
+
+                            <>
+
+                                <div className="code-display">
+                                    {code}
+                                </div>
+
+                                <button
+                                    className="button"
+                                    onClick={handleCopyCode}
+                                >
+                                    {
+                                        codeCopied
+                                            ? "Copied!"
+                                            : "Copy Code"
+                                    }
+                                </button>
+
+                            </>
+
+                        ) : (
+
+                            <button
+                                className="button"
+                                onClick={handleGetCode}
+                                disabled={codeLoading}
+                            >
+                                {
+                                    codeLoading
+                                        ? "Generating Code..."
+                                        : "Get Code"
+                                }
+                            </button>
+
+                        )}
+
+                        <div className="warning-box">
+
+                            A 6-digit code is much weaker than
+                            the link — anyone who guesses it
+                            can unlock the secret. Only use it
+                            when you have no other way to share
+                            the link, and prefer the link
+                            whenever possible.
+
+                        </div>
+
                     </div>
 
                 )}
+
+                <p className="small-text">
+                    Have a code instead of a link?{" "}
+                    <Link to="/code">
+                        Redeem it here
+                    </Link>
+                </p>
 
                 <div className="footer">
 

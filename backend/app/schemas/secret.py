@@ -13,3 +13,19 @@ class CreateSecretRequest(BaseModel):
 
 class SecretResponse(BaseModel):
     id: str
+
+class CreateCodeRequest(BaseModel):
+    code: str = Field(pattern=r"^\d{6}$")
+    wrapped_key: str
+    salt: str
+    iv: str
+
+class CodeResponse(BaseModel):
+    code: str
+
+class SecretByCodeResponse(BaseModel):
+    ciphertext: str
+    nonce: str
+    wrapped_key: str
+    salt: str
+    iv: str

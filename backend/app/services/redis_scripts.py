@@ -25,7 +25,8 @@ else
     redis.call(
         'SET',
         KEYS[1],
-        cjson.encode(data)
+        cjson.encode(data),
+        'KEEPTTL'
     )
 
 end

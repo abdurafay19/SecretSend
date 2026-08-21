@@ -78,6 +78,128 @@ export async function encryptSecret(
     };
 }
 
+const CODE_PBKDF2_ITERATIONS = 600000;
+
+export function generateCode() {
+
+    const array = new Uint32Array(1);
+
+    crypto.getRandomValues(array);
+
+    return (array[0] % 1000000)
+        .toString()
+        .padStart(6, "0");
+}
+
+function toBase64(bytes) {
+    return btoa(
+        String.fromCharCode(...bytes)
+    );
+}
+
+function fromBase64(value) {
+    return Uint8Array.from(
+        atob(value),
+        c => c.charCodeAt(0)
+    );
+}
+
+async function deriveKeyFromCode(code, salt) {
+
+    const baseKey = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(code),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+    );
+
+    return await crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt,
+            iterations: CODE_PBKDF2_ITERATIONS,
+            hash: "SHA-256"
+        },
+        baseKey,
+        {
+            name: "AES-GCM",
+            length: 256
+        },
+        false,
+        ["encrypt", "decrypt"]
+    );
+}
+
+export async function wrapKeyWithCode(secretKey, code) {
+
+    const salt =
+        crypto.getRandomValues(new Uint8Array(16));
+
+    const iv =
+        crypto.getRandomValues(new Uint8Array(12));
+
+    const wrappingKey =
+        await deriveKeyFromCode(code, salt);
+
+    const rawKey =
+        await crypto.subtle.exportKey(
+            "raw",
+            secretKey
+        );
+
+    const wrapped =
+        await crypto.subtle.encrypt(
+            {
+                name: "AES-GCM",
+                iv
+            },
+            wrappingKey,
+            rawKey
+        );
+
+    return {
+        wrappedKey: toBase64(new Uint8Array(wrapped)),
+        salt: toBase64(salt),
+        iv: toBase64(iv)
+    };
+}
+
+export async function unwrapKeyWithCode(
+    wrappedKeyBase64,
+    saltBase64,
+    ivBase64,
+    code
+) {
+
+    const salt = fromBase64(saltBase64);
+    const iv = fromBase64(ivBase64);
+    const wrapped = fromBase64(wrappedKeyBase64);
+
+    const wrappingKey =
+        await deriveKeyFromCode(code, salt);
+
+    const rawKey =
+        await crypto.subtle.decrypt(
+            {
+                name: "AES-GCM",
+                iv
+            },
+            wrappingKey,
+            wrapped
+        );
+
+    return await crypto.subtle.importKey(
+        "raw",
+        rawKey,
+        {
+            name: "AES-GCM"
+        },
+        true,
+        ["decrypt"]
+    );
+}
+
 export async function decryptSecret(
     ciphertext,
     nonce,
