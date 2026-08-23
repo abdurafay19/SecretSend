@@ -328,6 +328,16 @@ export default function CreateSecret() {
         }
     }
 
+    function handleRedeemAnother() {
+
+        setRedeemedSecret("");
+
+        setRedeemCode("");
+
+        setRedeemError("");
+
+    }
+
     return (
         <div className="page">
 
@@ -631,6 +641,13 @@ export default function CreateSecret() {
                                             ? "Copied!"
                                             : "Copy Secret"
                                     }
+                                </button>
+
+                                <button
+                                    className="button"
+                                    onClick={handleRedeemAnother}
+                                >
+                                    Redeem Another Code
                                 </button>
 
                             </>
