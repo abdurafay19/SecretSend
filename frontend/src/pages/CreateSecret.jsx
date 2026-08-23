@@ -59,7 +59,6 @@ export default function CreateSecret() {
     const [codeLoading, setCodeLoading] = useState(false);
     const [codeCopied, setCodeCopied] = useState(false);
 
-    const [showRedeem, setShowRedeem] = useState(false);
     const [redeemCode, setRedeemCode] = useState("");
     const [redeemLoading, setRedeemLoading] = useState(false);
     const [redeemError, setRedeemError] = useState("");
@@ -558,94 +557,87 @@ export default function CreateSecret() {
 
                 <div className="section">
 
-                    <button
-                        className="link-button"
-                        onClick={() =>
-                            setShowRedeem(v => !v)
-                        }
-                    >
-                        {
-                            showRedeem
-                                ? "Hide code redemption"
-                                : "Have a code instead of a link? Redeem it here"
-                        }
-                    </button>
+                    <label className="label">
+                        Redeem a Code
+                    </label>
 
-                    {showRedeem && (
+                    <div className="info-box">
 
-                        <div className="info-box">
+                        <p>
+                            Were you given a 6-digit code instead
+                            of a link? Enter it below to view and
+                            decrypt the secret.
+                        </p>
 
-                            {!redeemedSecret ? (
+                        {!redeemedSecret ? (
 
-                                <>
+                            <>
 
-                                    <label className="label">
-                                        Enter Code
-                                    </label>
+                                <label className="label">
+                                    Enter Code
+                                </label>
 
-                                    <input
-                                        className="input"
-                                        value={redeemCode}
-                                        onChange={handleRedeemCodeChange}
-                                        inputMode="numeric"
-                                        placeholder="000000"
-                                        maxLength={6}
-                                    />
+                                <input
+                                    className="input"
+                                    value={redeemCode}
+                                    onChange={handleRedeemCodeChange}
+                                    inputMode="numeric"
+                                    placeholder="000000"
+                                    maxLength={6}
+                                />
 
-                                    {redeemError && (
+                                {redeemError && (
 
-                                        <div className="warning-box">
-                                            {redeemError}
-                                        </div>
+                                    <div className="warning-box">
+                                        {redeemError}
+                                    </div>
 
-                                    )}
+                                )}
 
-                                    <button
-                                        className="button"
-                                        onClick={handleRedeem}
-                                        disabled={redeemLoading}
-                                    >
-                                        {
-                                            redeemLoading
-                                                ? "Retrieving..."
-                                                : "Redeem Code"
-                                        }
-                                    </button>
+                                <button
+                                    className="button"
+                                    onClick={handleRedeem}
+                                    disabled={redeemLoading}
+                                >
+                                    {
+                                        redeemLoading
+                                            ? "Retrieving..."
+                                            : "Redeem Code"
+                                    }
+                                </button>
 
-                                </>
+                            </>
 
-                            ) : (
+                        ) : (
 
-                                <>
+                            <>
 
-                                    <label className="label">
-                                        Secret Content
-                                    </label>
+                                <label className="label">
+                                    Secret Content
+                                </label>
 
-                                    <textarea
-                                        className="textarea"
-                                        readOnly
-                                        value={redeemedSecret}
-                                    />
+                                <textarea
+                                    className="textarea"
+                                    readOnly
+                                    value={redeemedSecret}
+                                />
 
-                                    <button
-                                        className="button"
-                                        onClick={handleCopyRedeemed}
-                                    >
-                                        {
-                                            redeemedCopied
-                                                ? "Copied!"
-                                                : "Copy Secret"
-                                        }
-                                    </button>
+                                <button
+                                    className="button"
+                                    onClick={handleCopyRedeemed}
+                                >
+                                    {
+                                        redeemedCopied
+                                            ? "Copied!"
+                                            : "Copy Secret"
+                                    }
+                                </button>
 
-                                </>
+                            </>
 
-                            )}
+                        )}
 
-                        </div>
-
-                    )}
+                    </div>
 
                 </div>
 
