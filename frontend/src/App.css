@@ -173,6 +173,10 @@ body {
     cursor: not-allowed;
 }
 
+.button + .button {
+    margin-left: 8px;
+}
+
 .section {
     margin-top: 15px;
 }
