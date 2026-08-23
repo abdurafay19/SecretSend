@@ -48,14 +48,13 @@ const TTL_OPTIONS = [
 export default function CreateSecret() {
 
     const [secret, setSecret] = useState("");
-    const [shareUrl, setShareUrl] = useState("");
-    const [loading, setLoading] = useState(false);
     const [ttl, setTtl] = useState(86400);
-    const [copied, setCopied] = useState(false);
     const [views, setViews] = useState(1);
 
-    const [secretId, setSecretId] = useState("");
-    const [secretKey, setSecretKey] = useState(null);
+    const [shareUrl, setShareUrl] = useState("");
+    const [linkLoading, setLinkLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
+
     const [code, setCode] = useState("");
     const [codeLoading, setCodeLoading] = useState(false);
     const [codeCopied, setCodeCopied] = useState(false);
@@ -86,17 +85,17 @@ export default function CreateSecret() {
         }
     }
 
-    async function handleCreate() {
+    async function encryptAndCreate() {
 
         if (!secret.trim()) {
-            return;
+            return null;
         }
 
         if (secret.length > MAX_SECRET_LENGTH) {
             alert(
                 `Secret is too long (max ${MAX_SECRET_LENGTH.toLocaleString()} characters)`
             );
-            return;
+            return null;
         }
 
         if (
@@ -107,50 +106,51 @@ export default function CreateSecret() {
             alert(
                 "Views must be between 1 and 10"
             );
-            return;
+            return null;
         }
+
+        const key = await generateKey();
+
+        const encrypted = await encryptSecret(
+            secret,
+            key
+        );
+
+        const response = await createSecret({
+            ciphertext: encrypted.ciphertext,
+            nonce: encrypted.nonce,
+            ttl,
+            views
+        });
+
+        return {
+            key,
+            secretId: response.id
+        };
+    }
+
+    async function handleGenerateLink() {
 
         try {
 
-            setLoading(true);
+            setLinkLoading(true);
 
-            setCode("");
+            setShareUrl("");
 
-            // Generate AES key
-            const key =
-                await generateKey();
+            const created = await encryptAndCreate();
 
-            // Encrypt secret
-            const encrypted =
-                await encryptSecret(
-                    secret,
-                    key
-                );
+            if (!created) {
+                return;
+            }
 
-            // Send ciphertext to backend
-            const response =
-                await createSecret({
-                    ciphertext:
-                        encrypted.ciphertext,
-                    nonce:
-                        encrypted.nonce,
-                    ttl,
-                    views
-                });
+            const exportedKey = await exportKey(created.key);
 
-            // Export key
-            const exportedKey =
-                await exportKey(key);
-
-            // Build URL
             const url =
                 `${window.location.origin}` +
-                `/s/${response.id}` +
+                `/s/${created.secretId}` +
                 `#${exportedKey}`;
 
             setShareUrl(url);
-            setSecretId(response.id);
-            setSecretKey(key);
 
         } catch (err) {
 
@@ -160,33 +160,39 @@ export default function CreateSecret() {
 
         } finally {
 
-            setLoading(false);
+            setLinkLoading(false);
 
         }
     }
 
-    async function handleGetCode() {
+    async function handleGenerateCode() {
 
         try {
 
             setCodeLoading(true);
 
-            const reserved = await reserveCode(secretId);
-            const candidate = reserved.code;
+            setCode("");
 
-            const wrapped =
-                await wrapKeyWithCode(
-                    secretKey,
-                    candidate
-                );
+            const created = await encryptAndCreate();
 
-            await attachCode(candidate, {
+            if (!created) {
+                return;
+            }
+
+            const reserved = await reserveCode(created.secretId);
+
+            const wrapped = await wrapKeyWithCode(
+                created.key,
+                reserved.code
+            );
+
+            await attachCode(reserved.code, {
                 wrapped_key: wrapped.wrappedKey,
                 salt: wrapped.salt,
                 iv: wrapped.iv
             });
 
-            setCode(candidate);
+            setCode(reserved.code);
 
         } catch (err) {
 
@@ -198,6 +204,30 @@ export default function CreateSecret() {
 
             setCodeLoading(false);
 
+        }
+    }
+
+    async function handleCopy() {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                shareUrl
+            );
+
+            setCopied(true);
+
+            setTimeout(() => {
+                setCopied(false);
+            }, 2000);
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(
+                "Failed to copy link"
+            );
         }
     }
 
@@ -295,30 +325,6 @@ export default function CreateSecret() {
 
             alert(
                 "Failed to copy secret"
-            );
-        }
-    }
-
-    async function handleCopy() {
-
-        try {
-
-            await navigator.clipboard.writeText(
-                shareUrl
-            );
-
-            setCopied(true);
-
-            setTimeout(() => {
-                setCopied(false);
-            }, 2000);
-
-        } catch (err) {
-
-            console.error(err);
-
-            alert(
-                "Failed to copy link"
             );
         }
     }
@@ -423,24 +429,58 @@ export default function CreateSecret() {
 
                 </div>
 
-                <button
-                    className="button"
-                    onClick={handleCreate}
-                    disabled={loading}
-                >
-                    {
-                        loading
-                            ? "Creating Link..."
-                            : "Generate Link"
-                    }
-                </button>
+                <div className="form-row">
+
+                    <div>
+
+                        <button
+                            className="button"
+                            onClick={handleGenerateLink}
+                            disabled={linkLoading}
+                        >
+                            {
+                                linkLoading
+                                    ? "Creating Link..."
+                                    : "Generate Link"
+                            }
+                        </button>
+
+                        <p className="small-text">
+                            A link with the decryption key attached —
+                            anyone who opens it can view the secret.
+                        </p>
+
+                    </div>
+
+                    <div>
+
+                        <button
+                            className="button"
+                            onClick={handleGenerateCode}
+                            disabled={codeLoading}
+                        >
+                            {
+                                codeLoading
+                                    ? "Generating Code..."
+                                    : "Generate 6-Digit Code"
+                            }
+                        </button>
+
+                        <p className="small-text">
+                            A short code you can read aloud or type
+                            elsewhere, for when sharing a link isn't possible.
+                        </p>
+
+                    </div>
+
+                </div>
 
                 {shareUrl && (
 
                     <div className="success-box">
 
                         <strong>
-                            Secret Created Successfully
+                            Secret Link Created
                         </strong>
 
                         <p>
@@ -472,63 +512,43 @@ export default function CreateSecret() {
 
                         </div>
 
-                        <hr />
+                    </div>
+
+                )}
+
+                {code && (
+
+                    <div className="success-box">
 
                         <strong>
-                            Can't share the link?
+                            Secret Code Created
                         </strong>
 
                         <p>
-                            Generate a 6-digit code instead.
-                            It shares the same expiration and
-                            view limit as the link above.
+                            Share the following code:
                         </p>
 
-                        {code ? (
+                        <div className="code-display">
+                            {code}
+                        </div>
 
-                            <>
-
-                                <div className="code-display">
-                                    {code}
-                                </div>
-
-                                <button
-                                    className="button"
-                                    onClick={handleCopyCode}
-                                >
-                                    {
-                                        codeCopied
-                                            ? "Copied!"
-                                            : "Copy Code"
-                                    }
-                                </button>
-
-                            </>
-
-                        ) : (
-
-                            <button
-                                className="button"
-                                onClick={handleGetCode}
-                                disabled={codeLoading}
-                            >
-                                {
-                                    codeLoading
-                                        ? "Generating Code..."
-                                        : "Get Code"
-                                }
-                            </button>
-
-                        )}
+                        <button
+                            className="button"
+                            onClick={handleCopyCode}
+                        >
+                            {
+                                codeCopied
+                                    ? "Copied!"
+                                    : "Copy Code"
+                            }
+                        </button>
 
                         <div className="warning-box">
 
                             A 6-digit code is much weaker than
-                            the link — anyone who guesses it
-                            can unlock the secret. Only use it
-                            when you have no other way to share
-                            the link, and prefer the link
-                            whenever possible.
+                            a link — anyone who guesses it can
+                            unlock the secret. Prefer the link
+                            whenever you can share one.
 
                         </div>
 
