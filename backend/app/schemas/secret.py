@@ -6,7 +6,7 @@ class CreateSecretRequest(BaseModel):
     nonce: str = Field(max_length=32)
     ttl: int = Field(
         ge=60,
-        le=604800
+        le=86400
     )
     views: int = Field(
         default=1,

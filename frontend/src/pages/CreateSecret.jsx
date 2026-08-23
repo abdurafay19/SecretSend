@@ -42,10 +42,6 @@ const TTL_OPTIONS = [
     {
         label: "1 Day",
         value: 86400
-    },
-    {
-        label: "1 Week",
-        value: 604800
     }
 ];
 
