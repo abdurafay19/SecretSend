@@ -1,18 +1,28 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.secrets import router as secret_router
 from app.routes.codes import router as code_router
 
+IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
+
 app = FastAPI(
-    title="SecretShare"
+    title="SecretShare",
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json"
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_origins=[
+        "http://localhost:5173",
+        "https://secret-share-green.vercel.app"
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT"],
+    allow_headers=["Content-Type"]
 )
 
 app.include_router(
