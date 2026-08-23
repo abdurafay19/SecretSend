@@ -9,7 +9,7 @@ def rate_limiter(name: str, limit: int, window: int):
         forwarded_for = request.headers.get("x-forwarded-for")
 
         if forwarded_for:
-            client_ip = forwarded_for.split(",")[0].strip()
+            client_ip = forwarded_for.split(",")[-1].strip()
         elif request.client:
             client_ip = request.client.host
         else:
