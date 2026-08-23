@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /s/
+
+Sitemap: https://secret-share-green.vercel.app/sitemap.xml

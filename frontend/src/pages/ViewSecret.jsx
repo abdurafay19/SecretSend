@@ -14,6 +14,10 @@ export default function ViewSecret() {
 
     const { id } = useParams();
 
+    useEffect(() => {
+        document.title = "View Secret — SecretShare";
+    }, []);
+
     const [secret, setSecret] =
         useState("");
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
     createSecret,
@@ -50,6 +50,10 @@ export default function CreateSecret() {
     const [secret, setSecret] = useState("");
     const [ttl, setTtl] = useState(86400);
     const [views, setViews] = useState(1);
+
+    useEffect(() => {
+        document.title = "SecretShare — Secure One-Time Secret Sharing";
+    }, []);
 
     const [shareUrl, setShareUrl] = useState("");
     const [linkLoading, setLinkLoading] = useState(false);
