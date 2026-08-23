@@ -52,7 +52,7 @@ export default function CreateSecret() {
     const [views, setViews] = useState(1);
 
     useEffect(() => {
-        document.title = "SecretShare — Secure One-Time Secret Sharing";
+        document.title = "SecretSend — Secure One-Time Secret Sharing";
     }, []);
 
     const [shareUrl, setShareUrl] = useState("");
@@ -350,7 +350,7 @@ export default function CreateSecret() {
                 <div className="topbar">
 
                     <div className="logo">
-                        SecretShare
+                        SecretSend
                     </div>
 
                     <div className="tagline">
@@ -361,10 +361,10 @@ export default function CreateSecret() {
 
                 <div className="info-box">
 
-                    <strong>What is SecretShare?</strong>
+                    <strong>What is SecretSend?</strong>
 
                     <p>
-                        SecretShare allows you to securely share
+                        SecretSend allows you to securely share
                         passwords, API keys, access tokens and
                         confidential information using encrypted
                         self-destructing links.
@@ -664,7 +664,7 @@ export default function CreateSecret() {
 
                 <div className="footer">
 
-                    SecretShare v1.0
+                    SecretSend v1.0
 
                 </div>
 

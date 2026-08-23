@@ -1,4 +1,4 @@
-# SecretShare
+# SecretSend
 
 <div align="center">
 
@@ -27,15 +27,15 @@ Share sensitive information through encrypted links that automatically expire af
 
 ## Live Demo
 
-[SecretShare](https://secret-share-green.vercel.app/)
+[SecretSend](https://secretsend.dev/)
 
 ---
 
-## Why SecretShare?
+## Why SecretSend?
 
 Traditional messaging platforms store your messages and often have access to plaintext content.
 
-SecretShare takes a different approach:
+SecretSend takes a different approach:
 
 * Encryption happens entirely in your browser.
 * Decryption happens entirely in your browser.

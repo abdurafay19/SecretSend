@@ -15,7 +15,7 @@ export default function ViewSecret() {
     const { id } = useParams();
 
     useEffect(() => {
-        document.title = "View Secret — SecretShare";
+        document.title = "View Secret — SecretSend";
     }, []);
 
     const [secret, setSecret] =
@@ -124,7 +124,7 @@ export default function ViewSecret() {
                     <div className="topbar">
 
                         <div className="logo">
-                            SecretShare
+                            SecretSend
                         </div>
 
                         <div className="tagline">
@@ -163,7 +163,7 @@ export default function ViewSecret() {
                     <div className="topbar">
 
                         <div className="logo">
-                            SecretShare
+                            SecretSend
                         </div>
 
                         <div className="tagline">
@@ -202,7 +202,7 @@ export default function ViewSecret() {
 
                     <div className="footer">
 
-                        SecretShare v1.0
+                        SecretSend v1.0
 
                     </div>
 
@@ -222,7 +222,7 @@ export default function ViewSecret() {
                 <div className="topbar">
 
                     <div className="logo">
-                        SecretShare
+                        SecretSend
                     </div>
 
                     <div className="tagline">
@@ -273,7 +273,7 @@ export default function ViewSecret() {
 
                 <div className="footer">
 
-                    SecretShare v1.0
+                    SecretSend v1.0
 
                 </div>
 
