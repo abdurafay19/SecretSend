@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import {
     createSecret,
-    createCode,
+    reserveCode,
+    attachCode,
     getByCode
 } from "../api/secretApi";
 
@@ -10,13 +11,11 @@ import {
     generateKey,
     exportKey,
     encryptSecret,
-    generateCode,
     wrapKeyWithCode,
     unwrapKeyWithCode,
     decryptSecret
 } from "../crypto/crypto";
 
-const CODE_RESERVE_ATTEMPTS = 5;
 const MAX_SECRET_LENGTH = 100000;
 
 const TTL_OPTIONS = [
@@ -176,46 +175,22 @@ export default function CreateSecret() {
 
             setCodeLoading(true);
 
-            for (
-                let attempt = 0;
-                attempt < CODE_RESERVE_ATTEMPTS;
-                attempt++
-            ) {
+            const reserved = await reserveCode(secretId);
+            const candidate = reserved.code;
 
-                const candidate = generateCode();
+            const wrapped =
+                await wrapKeyWithCode(
+                    secretKey,
+                    candidate
+                );
 
-                const wrapped =
-                    await wrapKeyWithCode(
-                        secretKey,
-                        candidate
-                    );
+            await attachCode(candidate, {
+                wrapped_key: wrapped.wrappedKey,
+                salt: wrapped.salt,
+                iv: wrapped.iv
+            });
 
-                try {
-
-                    await createCode(secretId, {
-                        code: candidate,
-                        wrapped_key: wrapped.wrappedKey,
-                        salt: wrapped.salt,
-                        iv: wrapped.iv
-                    });
-
-                    setCode(candidate);
-
-                    return;
-
-                } catch (err) {
-
-                    if (err.code !== "CODE_CONFLICT") {
-                        throw err;
-                    }
-
-                    // Code already taken, try another one
-                }
-            }
-
-            throw new Error(
-                "Could not generate a unique code, please try again"
-            );
+            setCode(candidate);
 
         } catch (err) {
 

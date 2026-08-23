@@ -17,8 +17,7 @@ class CreateSecretRequest(BaseModel):
 class SecretResponse(BaseModel):
     id: str
 
-class CreateCodeRequest(BaseModel):
-    code: str = Field(pattern=r"^\d{6}$")
+class AttachCodeRequest(BaseModel):
     wrapped_key: str = Field(max_length=200)
     salt: str = Field(max_length=64)
     iv: str = Field(max_length=64)

@@ -80,17 +80,6 @@ export async function encryptSecret(
 
 const CODE_PBKDF2_ITERATIONS = 600000;
 
-export function generateCode() {
-
-    const array = new Uint32Array(1);
-
-    crypto.getRandomValues(array);
-
-    return (array[0] % 1000000)
-        .toString()
-        .padStart(6, "0");
-}
-
 function toBase64(bytes) {
     return btoa(
         String.fromCharCode(...bytes)

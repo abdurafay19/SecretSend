@@ -32,11 +32,26 @@ export async function getSecret(id) {
     return await response.json();
 }
 
-export async function createCode(secretId, data) {
+export async function reserveCode(secretId) {
     const response = await fetch(
         `${API_URL}/api/secrets/${secretId}/code`,
         {
-            method: "POST",
+            method: "POST"
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to reserve code");
+    }
+
+    return await response.json();
+}
+
+export async function attachCode(code, data) {
+    const response = await fetch(
+        `${API_URL}/api/codes/${code}`,
+        {
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json"
             },
@@ -44,14 +59,8 @@ export async function createCode(secretId, data) {
         }
     );
 
-    if (response.status === 409) {
-        const error = new Error("Code already in use");
-        error.code = "CODE_CONFLICT";
-        throw error;
-    }
-
     if (!response.ok) {
-        throw new Error("Failed to create code");
+        throw new Error("Failed to attach code");
     }
 
     return await response.json();

@@ -1,11 +1,12 @@
 import json
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
 from app.redis_client import redis_client
 from app.routes.secrets import read_and_delete
 from app.schemas.secret import (
-    CreateCodeRequest,
+    AttachCodeRequest,
     CodeResponse,
     SecretByCodeResponse
 )
@@ -13,18 +14,23 @@ from app.services.rate_limit import rate_limiter
 
 router = APIRouter()
 
+CODE_RESERVE_ATTEMPTS = 20
+
+def generate_code() -> str:
+    return f"{secrets.randbelow(1000000):06d}"
+
 @router.post(
     "/secrets/{secret_id}/code",
     response_model=CodeResponse,
     dependencies=[
         Depends(rate_limiter(
-            name="create_code",
+            name="reserve_code",
             limit=30,
             window=60
         ))
     ]
 )
-def create_code(secret_id: str, request: CreateCodeRequest):
+def reserve_code(secret_id: str):
 
     ttl = redis_client.ttl(f"secret:{secret_id}")
 
@@ -34,27 +40,74 @@ def create_code(secret_id: str, request: CreateCodeRequest):
             detail="Secret not found"
         )
 
-    data = json.dumps({
-        "secret_id": secret_id,
-        "wrapped_key": request.wrapped_key,
-        "salt": request.salt,
-        "iv": request.iv
-    })
+    for _ in range(CODE_RESERVE_ATTEMPTS):
 
-    created = redis_client.set(
-        f"code:{request.code}",
-        data,
-        nx=True,
-        ex=ttl
+        code = generate_code()
+
+        data = json.dumps({
+            "secret_id": secret_id,
+            "pending": True
+        })
+
+        created = redis_client.set(
+            f"code:{code}",
+            data,
+            nx=True,
+            ex=ttl
+        )
+
+        if created:
+            return {"code": code}
+
+    raise HTTPException(
+        status_code=503,
+        detail="Could not allocate a code, please try again"
     )
 
-    if not created:
+@router.put(
+    "/codes/{code}",
+    response_model=CodeResponse,
+    dependencies=[
+        Depends(rate_limiter(
+            name="attach_code",
+            limit=30,
+            window=60
+        ))
+    ]
+)
+def attach_code(
+    request: AttachCodeRequest,
+    code: str = Path(pattern=r"^\d{6}$")
+):
+
+    key = f"code:{code}"
+
+    raw = redis_client.get(key)
+
+    if not raw:
+        raise HTTPException(
+            status_code=404,
+            detail="Code not found or expired"
+        )
+
+    code_data = json.loads(raw)
+
+    if not code_data.get("pending"):
         raise HTTPException(
             status_code=409,
             detail="Code already in use"
         )
 
-    return {"code": request.code}
+    data = json.dumps({
+        "secret_id": code_data["secret_id"],
+        "wrapped_key": request.wrapped_key,
+        "salt": request.salt,
+        "iv": request.iv
+    })
+
+    redis_client.set(key, data, keepttl=True)
+
+    return {"code": code}
 
 @router.get(
     "/codes/{code}",
@@ -82,6 +135,12 @@ def get_by_code(
         )
 
     code_data = json.loads(raw)
+
+    if code_data.get("pending"):
+        raise HTTPException(
+            status_code=404,
+            detail="Code not found"
+        )
 
     secret_json = read_and_delete(
         keys=[f"secret:{code_data['secret_id']}"]
