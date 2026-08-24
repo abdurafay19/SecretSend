@@ -2,9 +2,13 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.middleware import MaxBodySizeMiddleware
-from app.routes.secrets import router as secret_router
+from app.logging_config import configure_logging
+from app.middleware import MaxBodySizeMiddleware, RequestLoggingMiddleware
 from app.routes.codes import router as code_router
+from app.routes.health import router as health_router
+from app.routes.secrets import router as secret_router
+
+configure_logging()
 
 IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
 
@@ -29,6 +33,7 @@ app.add_middleware(
 )
 
 app.add_middleware(MaxBodySizeMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(
     secret_router,
@@ -37,5 +42,10 @@ app.include_router(
 
 app.include_router(
     code_router,
+    prefix="/api"
+)
+
+app.include_router(
+    health_router,
     prefix="/api"
 )

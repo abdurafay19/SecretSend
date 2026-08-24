@@ -1,5 +1,11 @@
+import logging
+import time
+
 from starlette.exceptions import HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
+
+logger = logging.getLogger("secretsend.access")
 
 MAX_BODY_SIZE = 200_000
 
@@ -42,3 +48,42 @@ class MaxBodySizeMiddleware:
             return message
 
         await self.app(scope, limited_receive, send)
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+
+    async def dispatch(self, request, call_next):
+
+        start = time.monotonic()
+
+        client_ip = request.client.host if request.client else "unknown"
+
+        try:
+            response = await call_next(request)
+
+        except Exception:
+            duration_ms = (time.monotonic() - start) * 1000
+
+            logger.exception(
+                f"{request.method} {request.url.path} "
+                f"ip={client_ip} duration_ms={duration_ms:.1f} "
+                f"error=unhandled_exception"
+            )
+
+            raise
+
+        duration_ms = (time.monotonic() - start) * 1000
+
+        log_line = (
+            f"{request.method} {request.url.path} "
+            f"status={response.status_code} ip={client_ip} "
+            f"duration_ms={duration_ms:.1f}"
+        )
+
+        if response.status_code >= 500:
+            logger.error(log_line)
+        elif response.status_code >= 400:
+            logger.warning(log_line)
+        else:
+            logger.info(log_line)
+
+        return response
