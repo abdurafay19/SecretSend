@@ -12,6 +12,7 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       ENVIRONMENT: production
+      SENTRY_DSN: https://4c958a1fd943c44bf80f121a75392f42@o4511966984732672.ingest.us.sentry.io/4511966990237701
     depends_on:
       - redis
     ports:

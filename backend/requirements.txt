@@ -3,3 +3,4 @@ uvicorn
 redis
 python-dotenv
 pydantic
+sentry-sdk[fastapi]

@@ -1,5 +1,6 @@
 import os
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.logging_config import configure_logging
@@ -11,6 +12,16 @@ from app.routes.secrets import router as secret_router
 configure_logging()
 
 IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
+
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment="production" if IS_PRODUCTION else "development",
+        send_default_pii=False,
+        traces_sample_rate=0
+    )
 
 app = FastAPI(
     title="SecretSend",
