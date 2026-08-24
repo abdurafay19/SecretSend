@@ -48,6 +48,20 @@ body {
     margin: -15px -15px 15px -15px;
 
     border-bottom: 1px solid #23355b;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.logo-mark {
+    width: 28px;
+
+    height: 28px;
+
+    flex-shrink: 0;
 }
 
 .logo {

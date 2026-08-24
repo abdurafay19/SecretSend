@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import logoMark from "../assets/logo-transparent.png";
+
 import {
     createSecret,
     reserveCode,
@@ -349,12 +351,22 @@ export default function CreateSecret() {
 
                 <div className="topbar">
 
-                    <div className="logo">
-                        SecretSend
-                    </div>
+                    <img
+                        className="logo-mark"
+                        src={logoMark}
+                        alt=""
+                    />
 
-                    <div className="tagline">
-                        Secure Secret Sharing
+                    <div>
+
+                        <div className="logo">
+                            SecretSend
+                        </div>
+
+                        <div className="tagline">
+                            Secure Secret Sharing
+                        </div>
+
                     </div>
 
                 </div>
