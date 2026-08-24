@@ -6,14 +6,7 @@ def rate_limiter(name: str, limit: int, window: int):
 
     def dependency(request: Request):
 
-        forwarded_for = request.headers.get("x-forwarded-for")
-
-        if forwarded_for:
-            client_ip = forwarded_for.split(",")[-1].strip()
-        elif request.client:
-            client_ip = request.client.host
-        else:
-            client_ip = "unknown"
+        client_ip = request.client.host if request.client else "unknown"
 
         key = f"ratelimit:{name}:{client_ip}"
 

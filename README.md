@@ -145,11 +145,11 @@ Redis provides near-instant secret access.
 | Backend VM Host   | ❌ No               |
 | Vercel Hosting    | ❌ No               |
 
-Additional server-side hardening: per-IP rate limiting (spoof-resistant —
-trusts the client-facing hop of `X-Forwarded-For`, not the client-supplied
-one), a locked-down CORS allowlist, request size and TTL caps, and a Redis
-memory ceiling with LRU eviction so no single client can exhaust the
-backend's resources.
+Additional server-side hardening: per-IP rate limiting (keyed off the raw
+TCP peer address, not a client-suppliable header, so it can't be spoofed),
+a locked-down CORS allowlist, a request body size cap enforced ahead of
+parsing, request/TTL caps, and a Redis memory ceiling with LRU eviction so
+no single client can exhaust the backend's resources.
 
 ---
 
