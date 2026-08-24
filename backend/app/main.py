@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.middleware import MaxBodySizeMiddleware
 from app.routes.secrets import router as secret_router
 from app.routes.codes import router as code_router
 
@@ -26,6 +27,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT"],
     allow_headers=["Content-Type"]
 )
+
+app.add_middleware(MaxBodySizeMiddleware)
 
 app.include_router(
     secret_router,
