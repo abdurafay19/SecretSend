@@ -3,6 +3,7 @@ import {
     Routes,
     Route
 } from "react-router-dom";
+import { Analytics } from '@vercel/analytics/react';
 
 import CreateSecret from "./pages/CreateSecret";
 import ViewSecret from "./pages/ViewSecret";
@@ -24,6 +25,7 @@ function App() {
                 />
 
             </Routes>
+            <Analytics />
         </BrowserRouter>
     );
 }
