@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 import logoMark from "../assets/logo-transparent.png";
+import GithubLink from "../components/GithubLink";
 
 import { getSecret } from "../api/secretApi";
 
@@ -143,6 +144,8 @@ export default function ViewSecret() {
 
                         </div>
 
+                        <GithubLink />
+
                     </div>
 
                     <h2>
@@ -191,6 +194,8 @@ export default function ViewSecret() {
                             </div>
 
                         </div>
+
+                        <GithubLink />
 
                     </div>
 
@@ -243,13 +248,25 @@ export default function ViewSecret() {
 
                 <div className="topbar">
 
-                    <div className="logo">
-                        SecretSend
+                    <img
+                        className="logo-mark"
+                        src={logoMark}
+                        alt=""
+                    />
+
+                    <div>
+
+                        <div className="logo">
+                            SecretSend
+                        </div>
+
+                        <div className="tagline">
+                            Secret Retrieval
+                        </div>
+
                     </div>
 
-                    <div className="tagline">
-                        Secret Retrieval
-                    </div>
+                    <GithubLink />
 
                 </div>
 

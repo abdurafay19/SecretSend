@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import logoMark from "../assets/logo-transparent.png";
+import GithubLink from "../components/GithubLink";
 
 import {
     createSecret,
@@ -368,6 +369,8 @@ export default function CreateSecret() {
                         </div>
 
                     </div>
+
+                    <GithubLink />
 
                 </div>
 
