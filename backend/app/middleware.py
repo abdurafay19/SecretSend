@@ -2,7 +2,6 @@ import logging
 import time
 
 from starlette.exceptions import HTTPException
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 logger = logging.getLogger("secretsend.access")
@@ -49,22 +48,41 @@ class MaxBodySizeMiddleware:
 
         await self.app(scope, limited_receive, send)
 
-class RequestLoggingMiddleware(BaseHTTPMiddleware):
+class RequestLoggingMiddleware:
 
-    async def dispatch(self, request, call_next):
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
         start = time.monotonic()
 
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = scope["client"][0] if scope.get("client") else "unknown"
+
+        method = scope["method"]
+        path = scope["path"]
+
+        status_holder = {}
+
+        async def send_wrapper(message):
+
+            if message["type"] == "http.response.start":
+                status_holder["status"] = message["status"]
+
+            await send(message)
 
         try:
-            response = await call_next(request)
+            await self.app(scope, receive, send_wrapper)
 
         except Exception:
             duration_ms = (time.monotonic() - start) * 1000
 
             logger.exception(
-                f"{request.method} {request.url.path} "
+                f"{method} {path} "
                 f"ip={client_ip} duration_ms={duration_ms:.1f} "
                 f"error=unhandled_exception"
             )
@@ -73,17 +91,17 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         duration_ms = (time.monotonic() - start) * 1000
 
+        status = status_holder.get("status", 0)
+
         log_line = (
-            f"{request.method} {request.url.path} "
-            f"status={response.status_code} ip={client_ip} "
+            f"{method} {path} "
+            f"status={status} ip={client_ip} "
             f"duration_ms={duration_ms:.1f}"
         )
 
-        if response.status_code >= 500:
+        if status >= 500:
             logger.error(log_line)
-        elif response.status_code >= 400:
+        elif status >= 400:
             logger.warning(log_line)
         else:
             logger.info(log_line)
-
-        return response
