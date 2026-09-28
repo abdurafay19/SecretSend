@@ -1,0 +1,4 @@
+# Environment files (docker compose reads .env from the repo root)
+.env
+.env.*
+!.env.example
