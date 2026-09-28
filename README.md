@@ -21,6 +21,20 @@ Share sensitive information through encrypted links that automatically expire af
 ![Portfolio Project](https://img.shields.io/badge/Portfolio-Project-blue)
 ![Security](https://img.shields.io/badge/Encryption-AES--GCM-important)
 
+<br>
+
+### [🔗 Live Demo: secretsend.dev](https://secretsend.dev)
+
+<table>
+  <tr>
+    <td align="center"><a href="docs/screenshots/create.png"><img src="docs/screenshots/create.png" width="200" alt="Create a secret"></a><br><sub>Create</sub></td>
+    <td align="center"><a href="docs/screenshots/share.png"><img src="docs/screenshots/share.png" width="200" alt="Share link and 6-digit code"></a><br><sub>Share link / code</sub></td>
+    <td align="center"><a href="docs/screenshots/reveal.png"><img src="docs/screenshots/reveal.png" width="200" alt="Secret revealed"></a><br><sub>Reveal</sub></td>
+    <td align="center"><a href="docs/screenshots/destroyed.png"><img src="docs/screenshots/destroyed.png" width="200" alt="Secret destroyed or expired"></a><br><sub>Destroyed / expired</sub></td>
+    <td align="center"><a href="docs/screenshots/create-mobile.png"><img src="docs/screenshots/create-mobile.png" width="110" alt="Create page on mobile"></a><br><sub>Mobile</sub></td>
+  </tr>
+</table>
+
 </div>
 
 ---
@@ -176,16 +190,6 @@ no single client can exhaust the backend's resources.
 
 ---
 
-## Performance Goals
-
-* Client-side encryption
-* Minimal backend processing
-* Redis-backed storage
-* Near-instant retrieval
-* Mobile-first experience
-
----
-
 ## Roadmap
 
 ### Completed
@@ -251,15 +255,10 @@ Feel free to use, modify, and learn from this project.
 
 **Abdul Rafay**
 
-Computer Science Student at ITU
+CS student at ITU and AI Engineer working on AI automation, computer vision, and backend systems.
 
-Interested in:
-
-* Systems Programming
-* Networking
-* Software Architecture
-
-GitHub: https://github.com/abdurafay19
+* LinkedIn: [linkedin.com/in/abdurafay19](https://www.linkedin.com/in/abdurafay19)
+* GitHub: [github.com/abdurafay19](https://github.com/abdurafay19)
 
 ---
 
